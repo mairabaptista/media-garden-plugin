@@ -22,6 +22,7 @@ function nowTimestamp(): string {
 
 function buildFrontmatter(type: MediaType, d: MediaDetails): Record<string, unknown> {
 	const common = {
+		ContentType: "media",
 		type,
 		title: d.title,
 		year: d.year,
