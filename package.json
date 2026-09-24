@@ -1,6 +1,6 @@
 {
 	"name": "media-garden",
-	"version": "2.0.1",
+	"version": "2.1.0",
 	"description": "Create notes for movies, games, anime, manga and books, auto-filled from external APIs.",
 	"main": "main.js",
 	"scripts": {
