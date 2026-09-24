@@ -1,0 +1,10 @@
+{
+	"id": "media-garden",
+	"name": "Media Garden",
+	"version": "1.0.0",
+	"minAppVersion": "1.4.0",
+	"description": "Create notes for movies, games, anime, manga and books, auto-filled from TMDB, RAWG, MyAnimeList (via Tenrai) and Open Library.",
+	"author": "Maíra Baptista",
+	"authorUrl": "",
+	"isDesktopOnly": true
+}
