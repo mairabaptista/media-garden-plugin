@@ -30,7 +30,8 @@ export class RawgProvider implements Provider {
 			year: d.released ? Number(d.released.slice(0, 4)) : undefined,
 			genres: (d.genres ?? []).map((g: any) => g.name),
 			cover: d.background_image,
-			externalRating: d.metacritic ?? undefined,
+			// metacritic is 0-100; normalize to the 0-10 scale used by every other provider.
+			externalRating: d.metacritic ? d.metacritic / 10 : undefined,
 			summary: d.description_raw,
 			platforms: (d.platforms ?? []).map((p: any) => p.platform?.name).filter(Boolean),
 			developer: (d.developers ?? [])[0]?.name,
