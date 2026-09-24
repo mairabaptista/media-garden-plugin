@@ -14,6 +14,12 @@ function clean<T extends object>(obj: T): Partial<T> {
 	return out;
 }
 
+function nowTimestamp(): string {
+	const d = new Date();
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function buildFrontmatter(type: MediaType, d: MediaDetails): Record<string, unknown> {
 	const common = {
 		type,
@@ -22,6 +28,7 @@ function buildFrontmatter(type: MediaType, d: MediaDetails): Record<string, unkn
 		genres: d.genres,
 		cover: d.cover,
 		external_rating: d.externalRating,
+		created: nowTimestamp(),
 		status: "planning",
 		rating: "",
 		date_started: "",
@@ -32,8 +39,8 @@ function buildFrontmatter(type: MediaType, d: MediaDetails): Record<string, unkn
 		movie: { runtime: d.runtime, director: d.director },
 		game: { platforms: d.platforms, developer: d.developer, publisher: d.publisher },
 		anime: { media_type: d.mediaType, episodes: d.episodes, studio: d.studio },
-		manga: { chapters: d.chapters, volumes: d.volumes, author: d.author },
-		book: { author: d.author, pages: d.pages, isbn: d.isbn },
+		manga: { chapters: d.chapters, volumes: d.volumes, author: d.author, digital_copy: false, physical_copy: false },
+		book: { author: d.author, pages: d.pages, isbn: d.isbn, digital_copy: false, physical_copy: false },
 	};
 
 	return { ...common, ...clean(specific[type]) };
