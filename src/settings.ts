@@ -4,12 +4,14 @@ import type MediaGardenPlugin from "./main";
 export interface MediaGardenSettings {
 	tmdbApiKey: string;
 	rawgApiKey: string;
+	hardcoverToken: string;
 	baseFolder: string;
 }
 
 export const DEFAULT_SETTINGS: MediaGardenSettings = {
 	tmdbApiKey: "",
 	rawgApiKey: "",
+	hardcoverToken: "",
 	baseFolder: "Media",
 };
 
@@ -60,6 +62,21 @@ export class MediaGardenSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.rawgApiKey)
 					.onChange(async (value) => {
 						this.plugin.settings.rawgApiKey = value.trim();
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Hardcover API token")
+			.setDesc(
+				"Required for books. Personal Access Token from hardcover.app account settings -> Hardcover API. Tokens expire, so you'll need to refresh this occasionally."
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Token")
+					.setValue(this.plugin.settings.hardcoverToken)
+					.onChange(async (value) => {
+						this.plugin.settings.hardcoverToken = value.trim();
 						await this.plugin.saveSettings();
 					})
 			);

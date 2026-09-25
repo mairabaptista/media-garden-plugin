@@ -3,7 +3,7 @@ import type { MediaType, Provider } from "../types";
 import { TmdbProvider } from "./tmdb";
 import { RawgProvider } from "./rawg";
 import { TenraiProvider } from "./tenrai";
-import { OpenLibraryProvider } from "./openlibrary";
+import { HardcoverProvider } from "./hardcover";
 
 export function getProvider(type: MediaType, settings: MediaGardenSettings): Provider {
 	switch (type) {
@@ -16,6 +16,6 @@ export function getProvider(type: MediaType, settings: MediaGardenSettings): Pro
 		case "manga":
 			return new TenraiProvider("manga");
 		case "book":
-			return new OpenLibraryProvider();
+			return new HardcoverProvider(settings.hardcoverToken);
 	}
 }
