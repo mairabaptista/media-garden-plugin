@@ -38,6 +38,43 @@ def gql(token: str, query: str, variables: dict) -> dict:
     return payload["data"]
 
 
+# Typesense's standard hit shape is `{ hits: [{ document: {...} }] }`, but
+# Hardcover's `results` field is untyped jsonb, so fall back defensively.
+def normalize_hits(results) -> list:
+    if not results:
+        return []
+    if isinstance(results, list):
+        return results
+    hits = results.get("hits") if isinstance(results, dict) else None
+    if isinstance(hits, list):
+        return [h.get("document", h) for h in hits]
+    return []
+
+
+def fetch_genres(token: str, title: str) -> list[str]:
+    # `genres` only exists on the Typesense search index, not the plain `books`
+    # type, so this needs its own lookup by title. Best-effort: a failed or
+    # mismatched lookup just means no genres, not a broken import.
+    try:
+        data = gql(
+            token,
+            """
+            query GenreLookup($q: String!) {
+                search(query: $q, query_type: "Book", per_page: 1, page: 1) {
+                    results
+                }
+            }
+            """,
+            {"q": title},
+        )
+    except Exception:
+        return []
+    hits = normalize_hits((data.get("search") or {}).get("results"))
+    if not hits:
+        return []
+    return (hits[0].get("genres") or [])[:5]
+
+
 def sanitize(name: str) -> str:
     return re.sub(r'[\\/:*?"<>|]', "", name).strip()
 
@@ -79,13 +116,14 @@ def build_frontmatter(book: dict) -> str:
     rating = book.get("rating")
     lit_type = literary_type(book.get("literary_type_id"))
     category = book_category(book.get("book_category_id"))
+    genres = book.get("genres") or []
 
     lines = [
         "ContentType: media",
         "type: book",
         f"title: {yaml_string(book['title'])}",
         f"year: {book.get('release_year') or ''}",
-        "genres: []",
+        f"genres: [{', '.join(yaml_string(g) for g in genres)}]",
         f"cover: {yaml_string(cover) if cover else ''}",
         f"external_rating: {round(rating * 2, 2) if rating else ''}",
         f"created: {now_timestamp()}",
@@ -123,7 +161,7 @@ def main() -> None:
         sys.exit(1)
 
     me = gql(token, "query { me { id } }", {})
-    user_id = me["me"][0]["id"]
+    user_id = (me.get("me") or {}).get("id")
     if not user_id:
         raise RuntimeError("Could not resolve your Hardcover user id from the `me` query.")
 
@@ -166,6 +204,7 @@ def main() -> None:
             skipped += 1
             continue
 
+        book["genres"] = fetch_genres(token, book["title"])
         content = f"---\n{build_frontmatter(book)}\n---\n\n{build_body(book)}"
         file_path.write_text(content, encoding="utf-8")
         created += 1

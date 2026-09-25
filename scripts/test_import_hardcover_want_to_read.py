@@ -1,7 +1,16 @@
-from import_hardcover_want_to_read import sanitize, build_frontmatter, build_body
+from import_hardcover_want_to_read import sanitize, build_frontmatter, build_body, normalize_hits
 
 # sanitize: strips filesystem-unsafe characters
 assert sanitize('Dune: Part Two?') == "Dune Part Two"
+
+# normalize_hits: standard Typesense shape, a flat list, and empty/missing input
+assert normalize_hits({"hits": [{"document": {"title": "A"}}, {"document": {"title": "B"}}]}) == [
+    {"title": "A"},
+    {"title": "B"},
+]
+assert normalize_hits([{"title": "A"}]) == [{"title": "A"}]
+assert normalize_hits(None) == []
+assert normalize_hits({}) == []
 
 # build_frontmatter: full record
 full = build_frontmatter({
@@ -13,15 +22,20 @@ full = build_frontmatter({
     "contributions": [{"author": {"name": "F. Scott Fitzgerald"}}],
     "literary_type_id": 1,
     "book_category_id": 4,
+    "genres": ["Classics", "Fiction"],
 })
 assert 'title: "The \\"Great\\" Gatsby"' in full
 assert "year: 1925" in full
+assert 'genres: ["Classics", "Fiction"]' in full
 assert "external_rating: 8.4" in full  # 4.2 * 2, normalized to the 0-10 scale
 assert 'author: "F. Scott Fitzgerald"' in full
 assert "pages: 180" in full
 assert 'literary_type: "Fiction"' in full
 assert 'category: "Graphic Novel"' in full
 assert "status: planning" in full
+
+# build_frontmatter: missing genres should emit an empty list, not crash
+assert "genres: []" in build_frontmatter({"title": "No Genres"})
 
 # build_frontmatter: missing rating/cover/author/pages/literary_type/category should emit blanks, not crash
 sparse = build_frontmatter({"title": "Untitled Draft"})
