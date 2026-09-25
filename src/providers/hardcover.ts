@@ -81,10 +81,11 @@ export class HardcoverProvider implements Provider {
 			{ id: numId }
 		);
 		const b = data.books?.[0] ?? {};
+		const genres = doc.genres?.length ? doc.genres : await this.fetchGenres(doc.title);
 		return {
 			title: doc.title,
 			year: doc.release_year ?? undefined,
-			genres: (doc.genres ?? []).slice(0, 5),
+			genres: genres.slice(0, 5),
 			cover: b.image?.url,
 			// Hardcover's rating is 0-5; normalize to the 0-10 scale every other provider uses.
 			externalRating: doc.rating ? doc.rating * 2 : undefined,
@@ -95,6 +96,27 @@ export class HardcoverProvider implements Provider {
 			literaryType: literaryType(b.literary_type_id),
 			category: bookCategory(b.book_category_id),
 		};
+	}
+
+	// `genres` only exists on the Typesense search index, not the plain `books`
+	// type, so a cache miss (or an empty hit) needs its own lookup by title.
+	// Best-effort: a failed or mismatched lookup just means no genres.
+	private async fetchGenres(title: string | undefined): Promise<string[]> {
+		if (!title) return [];
+		try {
+			const data = await this.gql(
+				`query GenreLookup($q: String!) {
+					search(query: $q, query_type: "Book", per_page: 1, page: 1) {
+						results
+					}
+				}`,
+				{ q: title }
+			);
+			const hits = normalizeHits(data.search?.results);
+			return hits[0]?.genres ?? [];
+		} catch {
+			return [];
+		}
 	}
 
 	private async gql(query: string, variables: Record<string, unknown>): Promise<any> {

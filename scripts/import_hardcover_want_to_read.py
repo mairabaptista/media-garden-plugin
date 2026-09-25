@@ -161,7 +161,7 @@ def main() -> None:
         sys.exit(1)
 
     me = gql(token, "query { me { id } }", {})
-    user_id = (me.get("me") or {}).get("id")
+    user_id = me["me"][0]["id"]
     if not user_id:
         raise RuntimeError("Could not resolve your Hardcover user id from the `me` query.")
 
