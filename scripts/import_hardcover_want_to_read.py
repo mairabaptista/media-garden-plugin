@@ -50,11 +50,16 @@ def yaml_string(value) -> str:
     return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def literary_type(literary_type_id) -> str | None:
+    return {1: "Fiction", 2: "Nonfiction"}.get(literary_type_id)
+
+
 def build_frontmatter(book: dict) -> str:
     author_list = book.get("contributions") or []
     author = author_list[0]["author"]["name"] if author_list and author_list[0].get("author") else None
     cover = (book.get("image") or {}).get("url")
     rating = book.get("rating")
+    lit_type = literary_type(book.get("literary_type_id"))
 
     lines = [
         "ContentType: media",
@@ -72,6 +77,7 @@ def build_frontmatter(book: dict) -> str:
         "digital_copy: false",
         f"author: {yaml_string(author) if author else ''}",
         f"pages: {book.get('pages') or ''}",
+        f"literary_type: {yaml_string(lit_type) if lit_type else ''}",
         "physical_copy: false",
     ]
     return "\n".join(lines)
@@ -97,7 +103,7 @@ def main() -> None:
         sys.exit(1)
 
     me = gql(token, "query { me { id } }", {})
-    user_id = (me.get("me") or {}).get("id")
+    user_id = me["me"][0]["id"]
     if not user_id:
         raise RuntimeError("Could not resolve your Hardcover user id from the `me` query.")
 
@@ -114,6 +120,7 @@ def main() -> None:
                     release_year
                     image { url }
                     contributions { author { name } }
+                    literary_type_id
                 }
             }
         }

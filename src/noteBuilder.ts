@@ -42,7 +42,7 @@ function buildFrontmatter(type: MediaType, d: MediaDetails): Record<string, unkn
 		game: { platforms: d.platforms, developer: d.developer, publisher: d.publisher },
 		anime: { media_type: d.mediaType, episodes: d.episodes, studio: d.studio },
 		manga: { chapters: d.chapters, volumes: d.volumes, author: d.author, physical_copy: false },
-		book: { author: d.author, pages: d.pages, isbn: d.isbn, physical_copy: false },
+		book: { author: d.author, pages: d.pages, isbn: d.isbn, literary_type: d.literaryType, physical_copy: false },
 	};
 
 	return { ...common, ...clean(specific[type]) };

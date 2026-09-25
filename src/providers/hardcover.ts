@@ -13,6 +13,10 @@ function normalizeHits(results: unknown): any[] {
 	return [];
 }
 
+function literaryType(id: number | undefined): string | undefined {
+	return id === 1 ? "Fiction" : id === 2 ? "Nonfiction" : undefined;
+}
+
 export class HardcoverProvider implements Provider {
 	// Search already returns rating/description/genres/pages, so cache them by
 	// id and avoid a second round-trip for anything but the cover image.
@@ -53,6 +57,7 @@ export class HardcoverProvider implements Provider {
 				books(where: { id: { _eq: $id } }) {
 					image { url }
 					contributions { author { name } }
+					literary_type_id
 				}
 			}`,
 			{ id: numId }
@@ -69,6 +74,7 @@ export class HardcoverProvider implements Provider {
 			author: b.contributions?.[0]?.author?.name ?? (doc.author_names ?? [])[0],
 			pages: doc.pages,
 			isbn: (doc.isbns ?? [])[0],
+			literaryType: literaryType(b.literary_type_id),
 		};
 	}
 
