@@ -54,12 +54,31 @@ def literary_type(literary_type_id) -> str | None:
     return {1: "Fiction", 2: "Nonfiction"}.get(literary_type_id)
 
 
+BOOK_CATEGORIES = {
+    1: "Book",
+    2: "Novella",
+    3: "Short Story",
+    4: "Graphic Novel",
+    5: "Fan Fiction",
+    6: "Research Paper",
+    7: "Poetry",
+    8: "Collection",
+    9: "Web Novel",
+    10: "Light Novel",
+}
+
+
+def book_category(book_category_id) -> str | None:
+    return BOOK_CATEGORIES.get(book_category_id)
+
+
 def build_frontmatter(book: dict) -> str:
     author_list = book.get("contributions") or []
     author = author_list[0]["author"]["name"] if author_list and author_list[0].get("author") else None
     cover = (book.get("image") or {}).get("url")
     rating = book.get("rating")
     lit_type = literary_type(book.get("literary_type_id"))
+    category = book_category(book.get("book_category_id"))
 
     lines = [
         "ContentType: media",
@@ -78,6 +97,7 @@ def build_frontmatter(book: dict) -> str:
         f"author: {yaml_string(author) if author else ''}",
         f"pages: {book.get('pages') or ''}",
         f"literary_type: {yaml_string(lit_type) if lit_type else ''}",
+        f"category: {yaml_string(category) if category else ''}",
         "physical_copy: false",
     ]
     return "\n".join(lines)
@@ -121,6 +141,7 @@ def main() -> None:
                     image { url }
                     contributions { author { name } }
                     literary_type_id
+                    book_category_id
                 }
             }
         }

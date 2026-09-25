@@ -46,6 +46,7 @@ export interface MediaDetails {
 	pages?: number;
 	isbn?: string;
 	literaryType?: string;
+	category?: string;
 }
 
 export interface Provider {

@@ -17,6 +17,23 @@ function literaryType(id: number | undefined): string | undefined {
 	return id === 1 ? "Fiction" : id === 2 ? "Nonfiction" : undefined;
 }
 
+const BOOK_CATEGORIES: Record<number, string> = {
+	1: "Book",
+	2: "Novella",
+	3: "Short Story",
+	4: "Graphic Novel",
+	5: "Fan Fiction",
+	6: "Research Paper",
+	7: "Poetry",
+	8: "Collection",
+	9: "Web Novel",
+	10: "Light Novel",
+};
+
+function bookCategory(id: number | undefined): string | undefined {
+	return id !== undefined ? BOOK_CATEGORIES[id] : undefined;
+}
+
 export class HardcoverProvider implements Provider {
 	// Search already returns rating/description/genres/pages, so cache them by
 	// id and avoid a second round-trip for anything but the cover image.
@@ -58,6 +75,7 @@ export class HardcoverProvider implements Provider {
 					image { url }
 					contributions { author { name } }
 					literary_type_id
+					book_category_id
 				}
 			}`,
 			{ id: numId }
@@ -75,6 +93,7 @@ export class HardcoverProvider implements Provider {
 			pages: doc.pages,
 			isbn: (doc.isbns ?? [])[0],
 			literaryType: literaryType(b.literary_type_id),
+			category: bookCategory(b.book_category_id),
 		};
 	}
 
